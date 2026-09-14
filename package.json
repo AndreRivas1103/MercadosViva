@@ -1,0 +1,12 @@
+{
+  "name": "mercados-viva",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n back,front -c green,cyan \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
+    "build": "npm run build --prefix frontend",
+    "start": "npm start --prefix backend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
