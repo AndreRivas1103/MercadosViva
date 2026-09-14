@@ -5,7 +5,8 @@ import { useCarrito } from "../carrito.jsx";
 export default function Encabezado() {
   const [q, setQ] = useState("");
   const navigate = useNavigate();
-  const { unidades } = useCarrito();
+  const { unidades, timer, expiraEn, ahora } = useCarrito();
+  const urgente = expiraEn > 0 && expiraEn - ahora <= 60_000;
 
   function buscar(evento) {
     evento.preventDefault();
@@ -36,6 +37,13 @@ export default function Encabezado() {
           {unidades > 0 && <span>{unidades}</span>}
         </Link>
       </div>
+
+      {unidades > 0 && timer && (
+        <div className={`timer-reserva${urgente ? " timer-reserva--urgente" : ""}`}>
+          <span>Tu carrito está reservado</span>
+          <strong>{timer}</strong>
+        </div>
+      )}
     </header>
   );
 }

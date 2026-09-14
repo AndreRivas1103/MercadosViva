@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
 import { pesos } from "../api.js";
 import { useCarrito } from "../carrito.jsx";
+import { formatearTimer } from "../tiempo.js";
 
 export default function Carrito() {
-  const { items, total, quitar } = useCarrito();
+  const { items, total, quitar, ahora } = useCarrito();
 
   if (items.length === 0) {
     return (
@@ -20,6 +21,7 @@ export default function Carrito() {
   return (
     <section className="caja">
       <h1>Carrito</h1>
+      <p className="reserva-aviso">Cada producto queda reservado 10 minutos para ti. Si se acaba el tiempo, otro puede tomarlo.</p>
       <ul className="lista-carrito">
         {items.map((item) => (
           <li key={item.id}>
@@ -28,8 +30,8 @@ export default function Carrito() {
               <h2>{item.nombre}</h2>
               <p>
                 {item.cantidad} × {pesos(item.precio)}
-                {item.stock != null && ` · ${item.stock} en disponibilidad`}
               </p>
+              <p className="reserva">Reservado {formatearTimer(item.expiraEn, ahora)}</p>
             </div>
             <strong>{pesos(item.precio * item.cantidad)}</strong>
             <button type="button" className="quitar" onClick={() => quitar(item.id)}>

@@ -4,12 +4,43 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { categorias, productos as catalogo } from "./data.js";
-import { conStock, guardarPedido, obtenerPedido, sembrarInventario } from "./db.js";
+import {
+  carritoDeSesion,
+  conStock,
+  guardarPedido,
+  obtenerPedido,
+  quitarReserva,
+  reservarUnidad,
+  sembrarInventario,
+  vaciarReservas,
+} from "./db.js";
 
 sembrarInventario(catalogo);
 
 function productos() {
   return conStock(catalogo);
+}
+
+function sesionDe(req) {
+  const id = String(req.get("X-Sesion-Id") || "").trim();
+  return /^[0-9a-fA-F-]{36}$/.test(id) ? id : null;
+}
+
+function exigirSesion(req, res) {
+  const sesion = sesionDe(req);
+  if (!sesion) {
+    res.status(400).json({ error: "Falta la sesión del carrito" });
+    return null;
+  }
+  return sesion;
+}
+
+function responderError(res, error, respaldo) {
+  if (error.status) {
+    return res.status(error.status).json({ error: error.message });
+  }
+  console.error(respaldo, error);
+  return res.status(500).json({ error: respaldo });
 }
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -49,7 +80,38 @@ app.get("/api/productos/:id", (req, res) => {
   res.json(producto);
 });
 
+app.get("/api/carrito", (req, res) => {
+  const sesion = exigirSesion(req, res);
+  if (!sesion) return;
+  res.json(carritoDeSesion(sesion, catalogo));
+});
+
+app.post("/api/carrito", (req, res) => {
+  const sesion = exigirSesion(req, res);
+  if (!sesion) return;
+  try {
+    res.status(201).json(reservarUnidad(sesion, req.body?.productoId, catalogo));
+  } catch (error) {
+    responderError(res, error, "No se pudo reservar el producto");
+  }
+});
+
+app.delete("/api/carrito/:productoId", (req, res) => {
+  const sesion = exigirSesion(req, res);
+  if (!sesion) return;
+  res.json(quitarReserva(sesion, req.params.productoId, catalogo));
+});
+
+app.delete("/api/carrito", (req, res) => {
+  const sesion = exigirSesion(req, res);
+  if (!sesion) return;
+  res.json(vaciarReservas(sesion, catalogo));
+});
+
 app.post("/api/pedidos", (req, res) => {
+  const sesion = exigirSesion(req, res);
+  if (!sesion) return;
+
   const { nombre, correo, telefono, direccion, ciudad, metodo, items } = req.body ?? {};
 
   if (!nombre || !correo || !telefono || !direccion || !ciudad || !metodo) {
@@ -79,6 +141,7 @@ app.post("/api/pedidos", (req, res) => {
   const total = lineas.reduce((suma, linea) => suma + linea.subtotal, 0);
   const pedidoId = `MV-${Date.now().toString(36).toUpperCase()}`;
   const datos = {
+    sesionId: sesion,
     id: pedidoId,
     nombre: String(nombre).trim(),
     correo: String(correo).trim(),
@@ -93,11 +156,7 @@ app.post("/api/pedidos", (req, res) => {
   try {
     guardarPedido(datos);
   } catch (error) {
-    if (error.status === 400) {
-      return res.status(400).json({ error: error.message });
-    }
-    console.error("No se pudo guardar el pedido", error);
-    return res.status(500).json({ error: "No se pudo registrar el pedido" });
+    return responderError(res, error, "No se pudo registrar el pedido");
   }
 
   res.status(201).json({

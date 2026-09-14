@@ -62,25 +62,24 @@ export default function Inicio() {
     }
     document.addEventListener("visibilitychange", alVolver);
     window.addEventListener("focus", cargarProductos);
+    const id = window.setInterval(cargarProductos, 15000);
     return () => {
       document.removeEventListener("visibilitychange", alVolver);
       window.removeEventListener("focus", cargarProductos);
+      window.clearInterval(id);
     };
   }, [cargarProductos]);
 
-  function elegir(producto) {
-    const resultado = agregar(producto);
-    if (!resultado) {
-      setAviso(
-        producto.stock < 1
-          ? `${producto.nombre} está agotado`
-          : `Solo hay ${producto.stock} en disponibilidad`
-      );
-    } else {
-      setAviso(`${producto.nombre} se fue al carrito`);
+  async function elegir(producto) {
+    try {
+      await agregar(producto);
+      setAviso(`${producto.nombre} se fue al carrito. Tienes 10:00 para pagar.`);
+    } catch (err) {
+      setAviso(err.message);
     }
+    cargarProductos();
     window.clearTimeout(elegir._t);
-    elegir._t = window.setTimeout(() => setAviso(""), 1800);
+    elegir._t = window.setTimeout(() => setAviso(""), 2200);
   }
 
   const listos = productos.filter((p) => p.stock > 0).length;

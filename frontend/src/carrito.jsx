@@ -1,55 +1,68 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { api } from "./api.js";
+import { formatearTimer } from "./tiempo.js";
 
 const CarritoCtx = createContext(null);
-const CLAVE = "mercados-viva-carrito";
 
 export function CarritoProveedor({ children }) {
-  const [items, setItems] = useState(() => {
+  const [items, setItems] = useState([]);
+  const [ahora, setAhora] = useState(() => Date.now());
+
+  const sincronizar = useCallback(async () => {
     try {
-      return JSON.parse(localStorage.getItem(CLAVE)) || [];
+      setItems(await api.carrito());
     } catch {
-      return [];
+      setItems([]);
     }
-  });
+  }, []);
 
   useEffect(() => {
-    localStorage.setItem(CLAVE, JSON.stringify(items));
-  }, [items]);
+    sincronizar();
+    const id = window.setInterval(sincronizar, 15000);
+    return () => window.clearInterval(id);
+  }, [sincronizar]);
 
-  const api = useMemo(() => {
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      const t = Date.now();
+      setAhora(t);
+      if (items.some((item) => Number(item.expiraEn) <= t)) {
+        sincronizar();
+      }
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [items, sincronizar]);
+
+  const acciones = useMemo(() => {
     const unidades = items.reduce((suma, item) => suma + item.cantidad, 0);
     const total = items.reduce((suma, item) => suma + item.precio * item.cantidad, 0);
+    const expiraEn = items.reduce((max, item) => Math.max(max, Number(item.expiraEn) || 0), 0);
 
     return {
       items,
       unidades,
       total,
-      agregar(producto) {
-        const tope = Number(producto.stock) || 0;
-        if (tope < 1) return false;
-        const ya = items.find((item) => item.id === producto.id);
-        if ((ya?.cantidad || 0) >= tope) return false;
-        setItems((previos) => {
-          const actual = previos.find((item) => item.id === producto.id);
-          if (actual) {
-            return previos.map((item) =>
-              item.id === producto.id ? { ...item, cantidad: item.cantidad + 1, stock: tope } : item
-            );
-          }
-          return [...previos, { ...producto, cantidad: 1, stock: tope }];
-        });
-        return true;
+      ahora,
+      expiraEn,
+      timer: expiraEn ? formatearTimer(expiraEn, ahora) : "",
+      sincronizar,
+      async agregar(producto) {
+        setItems(await api.reservar(producto.id));
       },
-      quitar(id) {
-        setItems((previos) => previos.filter((item) => item.id !== id));
+      async quitar(id) {
+        setItems(await api.quitar(id));
       },
-      vaciar() {
-        setItems([]);
+      async vaciar() {
+        try {
+          setItems(await api.vaciar());
+        } catch {
+          setItems([]);
+        }
       },
     };
-  }, [items]);
+  }, [items, ahora, sincronizar]);
 
-  return <CarritoCtx.Provider value={api}>{children}</CarritoCtx.Provider>;
+  return <CarritoCtx.Provider value={acciones}>{children}</CarritoCtx.Provider>;
 }
 
 export function useCarrito() {
