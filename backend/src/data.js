@@ -14,7 +14,7 @@ export const productos = [
     precio: 8900,
     unidad: "paquete",
     categoria: "panaderia",
-    disponible: true,
+    stock: 18,
     imagen: "/productos/pan-tajado.jpg",
   },
   {
@@ -23,7 +23,7 @@ export const productos = [
     precio: 7200,
     unidad: "bolsa",
     categoria: "panaderia",
-    disponible: true,
+    stock: 4,
     imagen: "/productos/pan-queso.jpg",
   },
   {
@@ -32,7 +32,7 @@ export const productos = [
     precio: 4500,
     unidad: "paquete",
     categoria: "panaderia",
-    disponible: false,
+    stock: 0,
     imagen: "/productos/arepa-mote.jpg",
   },
   {
@@ -41,7 +41,7 @@ export const productos = [
     precio: 2800,
     unidad: "bolsa",
     categoria: "granos",
-    disponible: true,
+    stock: 25,
     imagen: "/productos/arroz-blanco.jpg",
   },
   {
@@ -50,7 +50,7 @@ export const productos = [
     precio: 6200,
     unidad: "bolsa",
     categoria: "granos",
-    disponible: false,
+    stock: 0,
     imagen: "/productos/arroz-integral.jpg",
   },
   {
@@ -59,7 +59,7 @@ export const productos = [
     precio: 7000,
     unidad: "bolsa",
     categoria: "granos",
-    disponible: true,
+    stock: 12,
     imagen: "/productos/frijol.jpg",
   },
   {
@@ -68,7 +68,7 @@ export const productos = [
     precio: 3500,
     unidad: "lb",
     categoria: "verduras",
-    disponible: true,
+    stock: 8,
     imagen: "/productos/tomate.jpg",
   },
   {
@@ -77,7 +77,7 @@ export const productos = [
     precio: 1500,
     unidad: "manojo",
     categoria: "verduras",
-    disponible: true,
+    stock: 3,
     imagen: "/productos/cilantro.jpg",
   },
   {
@@ -86,7 +86,7 @@ export const productos = [
     precio: 6500,
     unidad: "lb",
     categoria: "verduras",
-    disponible: false,
+    stock: 0,
     imagen: "/productos/papa-criolla.jpg",
   },
   {
@@ -95,7 +95,7 @@ export const productos = [
     precio: 2800,
     unidad: "unidad",
     categoria: "verduras",
-    disponible: true,
+    stock: 15,
     imagen: "/productos/platano.jpg",
   },
   {
@@ -104,7 +104,7 @@ export const productos = [
     precio: 3200,
     unidad: "unidad",
     categoria: "verduras",
-    disponible: false,
+    stock: 0,
     imagen: "/productos/lechuga.jpg",
   },
   {
@@ -113,7 +113,7 @@ export const productos = [
     precio: 4500,
     unidad: "manojo",
     categoria: "frutas",
-    disponible: true,
+    stock: 6,
     imagen: "/productos/banano.jpg",
   },
   {
@@ -122,7 +122,7 @@ export const productos = [
     precio: 4500,
     unidad: "unidad",
     categoria: "frutas",
-    disponible: true,
+    stock: 5,
     imagen: "/productos/aguacate.jpg",
   },
   {
@@ -131,7 +131,7 @@ export const productos = [
     precio: 1800,
     unidad: "botella",
     categoria: "bebidas",
-    disponible: true,
+    stock: 30,
     imagen: "/productos/agua.jpg",
   },
   {
@@ -140,7 +140,7 @@ export const productos = [
     precio: 6900,
     unidad: "botella",
     categoria: "bebidas",
-    disponible: true,
+    stock: 9,
     imagen: "/productos/gaseosa.jpg",
   },
   {
@@ -149,7 +149,7 @@ export const productos = [
     precio: 4200,
     unidad: "caja",
     categoria: "bebidas",
-    disponible: false,
+    stock: 0,
     imagen: "/productos/jugo.jpg",
   },
   {
@@ -158,7 +158,7 @@ export const productos = [
     precio: 12900,
     unidad: "bolsa",
     categoria: "bebidas",
-    disponible: true,
+    stock: 7,
     imagen: "/productos/cafe.jpg",
   },
   {
@@ -167,7 +167,7 @@ export const productos = [
     precio: 4800,
     unidad: "bolsa",
     categoria: "despensa",
-    disponible: true,
+    stock: 4,
     imagen: "/productos/leche.jpg",
   },
   {
@@ -176,7 +176,7 @@ export const productos = [
     precio: 9600,
     unidad: "cubeta",
     categoria: "despensa",
-    disponible: true,
+    stock: 11,
     imagen: "/productos/huevos.jpg",
   },
   {
@@ -185,7 +185,7 @@ export const productos = [
     precio: 14900,
     unidad: "botella",
     categoria: "despensa",
-    disponible: false,
+    stock: 0,
     imagen: "/productos/aceite.jpg",
   },
 ];

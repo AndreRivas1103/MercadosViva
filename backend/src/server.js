@@ -3,8 +3,14 @@ import cors from "cors";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { categorias, productos } from "./data.js";
-import { guardarPedido, obtenerPedido } from "./db.js";
+import { categorias, productos as catalogo } from "./data.js";
+import { conStock, guardarPedido, obtenerPedido, sembrarInventario } from "./db.js";
+
+sembrarInventario(catalogo);
+
+function productos() {
+  return conStock(catalogo);
+}
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const dist = path.resolve(__dirname, "../../frontend/dist");
@@ -26,7 +32,7 @@ app.get("/api/categorias", (_req, res) => {
 
 app.get("/api/productos", (req, res) => {
   const { q, categoria } = req.query;
-  let lista = productos;
+  let lista = productos();
 
   if (categoria) lista = lista.filter((p) => p.categoria === categoria);
   if (q) {
@@ -38,7 +44,7 @@ app.get("/api/productos", (req, res) => {
 });
 
 app.get("/api/productos/:id", (req, res) => {
-  const producto = productos.find((p) => p.id === req.params.id);
+  const producto = productos().find((p) => p.id === req.params.id);
   if (!producto) return res.status(404).json({ error: "Producto no encontrado" });
   res.json(producto);
 });
@@ -56,9 +62,9 @@ app.post("/api/pedidos", (req, res) => {
 
   const lineas = [];
   for (const item of items) {
-    const producto = productos.find((p) => p.id === item.id);
+    const producto = catalogo.find((p) => p.id === item.id);
     const cantidad = Number(item.cantidad);
-    if (!producto || !producto.disponible || !Number.isInteger(cantidad) || cantidad < 1) {
+    if (!producto || !Number.isInteger(cantidad) || cantidad < 1) {
       return res.status(400).json({ error: "Hay un producto agotado o inválido en el carrito" });
     }
     lineas.push({
@@ -87,6 +93,9 @@ app.post("/api/pedidos", (req, res) => {
   try {
     guardarPedido(datos);
   } catch (error) {
+    if (error.status === 400) {
+      return res.status(400).json({ error: error.message });
+    }
     console.error("No se pudo guardar el pedido", error);
     return res.status(500).json({ error: "No se pudo registrar el pedido" });
   }

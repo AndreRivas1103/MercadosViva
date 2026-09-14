@@ -25,16 +25,20 @@ export function CarritoProveedor({ children }) {
       unidades,
       total,
       agregar(producto) {
-        if (!producto.disponible) return;
+        const tope = Number(producto.stock) || 0;
+        if (tope < 1) return false;
+        const ya = items.find((item) => item.id === producto.id);
+        if ((ya?.cantidad || 0) >= tope) return false;
         setItems((previos) => {
-          const ya = previos.find((item) => item.id === producto.id);
-          if (ya) {
+          const actual = previos.find((item) => item.id === producto.id);
+          if (actual) {
             return previos.map((item) =>
-              item.id === producto.id ? { ...item, cantidad: item.cantidad + 1 } : item
+              item.id === producto.id ? { ...item, cantidad: item.cantidad + 1, stock: tope } : item
             );
           }
-          return [...previos, { ...producto, cantidad: 1 }];
+          return [...previos, { ...producto, cantidad: 1, stock: tope }];
         });
+        return true;
       },
       quitar(id) {
         setItems((previos) => previos.filter((item) => item.id !== id));

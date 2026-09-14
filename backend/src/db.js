@@ -33,6 +33,11 @@ db.exec(`
     subtotal INTEGER NOT NULL,
     FOREIGN KEY (pedido_id) REFERENCES pedidos(id)
   );
+
+  CREATE TABLE IF NOT EXISTS inventario (
+    producto_id TEXT PRIMARY KEY,
+    stock INTEGER NOT NULL
+  );
 `);
 
 const insertarPedido = db.prepare(`
@@ -47,10 +52,38 @@ const insertarItem = db.prepare(`
 
 const buscarPedido = db.prepare(`SELECT * FROM pedidos WHERE id = ?`);
 const buscarItems = db.prepare(`SELECT producto_id, nombre, cantidad, precio, subtotal FROM pedido_items WHERE pedido_id = ?`);
+const insertarStock = db.prepare(`INSERT OR IGNORE INTO inventario (producto_id, stock) VALUES (?, ?)`);
+const listarStock = db.prepare(`SELECT producto_id, stock FROM inventario`);
+const descontarStock = db.prepare(`
+  UPDATE inventario SET stock = stock - ? WHERE producto_id = ? AND stock >= ?
+`);
+
+export function sembrarInventario(catalogo) {
+  for (const producto of catalogo) {
+    insertarStock.run(producto.id, producto.stock);
+  }
+}
+
+export function conStock(catalogo) {
+  const mapa = Object.fromEntries(listarStock.all().map((fila) => [fila.producto_id, fila.stock]));
+  return catalogo.map((producto) => {
+    const stock = mapa[producto.id] ?? producto.stock ?? 0;
+    return { ...producto, stock, disponible: stock > 0 };
+  });
+}
 
 export function guardarPedido({ id, nombre, correo, telefono, direccion, ciudad, metodo, total, items }) {
   db.exec("BEGIN");
   try {
+    for (const item of items) {
+      const resultado = descontarStock.run(item.cantidad, item.id, item.cantidad);
+      if (resultado.changes !== 1) {
+        const error = new Error(`Ya no hay suficientes unidades de ${item.nombre}`);
+        error.status = 400;
+        throw error;
+      }
+    }
+
     insertarPedido.run(
       id,
       nombre,

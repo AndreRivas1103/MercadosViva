@@ -28,6 +28,7 @@ export default function Carrito() {
               <h2>{item.nombre}</h2>
               <p>
                 {item.cantidad} × {pesos(item.precio)}
+                {item.stock != null && ` · ${item.stock} en disponibilidad`}
               </p>
             </div>
             <strong>{pesos(item.precio * item.cantidad)}</strong>
